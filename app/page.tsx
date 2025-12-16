@@ -5,7 +5,8 @@ import { parsePsbt, PsbtSummary } from "@/lib/psbt";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { AlertCircle, Copy } from "lucide-react";
+import Link from "next/link";
+import { AlertCircle, Copy, BookOpen } from "lucide-react";
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -32,9 +33,16 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
-        <header className="space-y-2">
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">PSBT Lens</h1>
-          <p className="text-slate-500 text-lg">Partially Signed Bitcoin Transaction Visualization & Debugger</p>
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">PSBT Lens</h1>
+            <p className="text-slate-500 text-lg">Partially Signed Bitcoin Transaction Visualization & Debugger</p>
+          </div>
+          <Link href="/docs">
+            <Button variant="outline" className="gap-2">
+              <BookOpen className="w-4 h-4" /> Documentation
+            </Button>
+          </Link>
         </header>
 
         {/* Input Section */}

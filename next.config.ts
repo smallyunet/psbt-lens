@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'export',
+  images: {
+    unoptimized: true,
+  },
+  // Optional: Set a basePath if your site is hosted at a subpath (e.g. /repo-name)
+  // basePath: '/psbt-lens',
   webpack: (config, { isServer }) => {
     // Enable WebAssembly support for tiny-secp256k1
     config.experiments = {
