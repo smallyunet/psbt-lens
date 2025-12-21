@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  // Optional: Set a basePath if your site is hosted at a subpath (e.g. /repo-name)
+  turbopack: {},
   // basePath: '/psbt-lens',
   webpack: (config, { isServer }) => {
     // Enable WebAssembly support for tiny-secp256k1

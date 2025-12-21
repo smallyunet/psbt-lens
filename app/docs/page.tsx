@@ -120,6 +120,48 @@ export default function DocsPage() {
                                 <h3 className="font-semibold text-slate-900 mb-1">Fee Calculation</h3>
                                 <p className="text-sm text-slate-500">Computes the transaction fee if all input values are available (requires witness data or UTXO info).</p>
                             </div>
+                            <div className="p-4 bg-white border border-slate-200 rounded-lg">
+                                <h3 className="font-semibold text-slate-900 mb-1">Address Type Detection</h3>
+                                <p className="text-sm text-slate-500">Identifies P2PKH, P2SH, P2WPKH, P2WSH, and P2TR (Taproot) address types.</p>
+                            </div>
+                            <div className="p-4 bg-white border border-slate-200 rounded-lg">
+                                <h3 className="font-semibold text-slate-900 mb-1">Script ASM Decoding</h3>
+                                <p className="text-sm text-slate-500">View ScriptSig and ScriptPubKey in human-readable ASM format.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Section 5: Example PSBTs */}
+                    <section className="space-y-4">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 bg-cyan-100 rounded-lg text-cyan-600">
+                                <BookOpen className="w-6 h-6" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-900">Example PSBTs</h2>
+                        </div>
+                        <p className="text-slate-600 text-sm mb-4">Copy any of these example PSBTs to try with the analyzer:</p>
+                        <div className="space-y-4">
+                            <div className="bg-white p-4 rounded-lg border border-slate-200">
+                                <h3 className="font-semibold text-slate-900 mb-1">Simple P2WPKH Transaction</h3>
+                                <p className="text-sm text-slate-500 mb-2">A basic SegWit transaction with 1 input and 2 outputs.</p>
+                                <code className="block text-[10px] font-mono bg-slate-100 p-2 rounded break-all text-slate-600 select-all">
+                                    cHNidP8BAHECAAAAAbiWoY6pOQepFsEGhUPXaulX7HACUbDAFzsZF7lGsn4sAAAAAAD/////AgDh9QUAAAAAFgAUY1CFMJ1ovqj8zQSkBQOu/BDJxdsAgIQeAAAAABYAFK7lhGP2yMsvU//bMwKVo1mz3l9MAAAAAAAAAAA=
+                                </code>
+                            </div>
+                            <div className="bg-white p-4 rounded-lg border border-slate-200">
+                                <h3 className="font-semibold text-slate-900 mb-1">P2TR (Taproot) Transaction</h3>
+                                <p className="text-sm text-slate-500 mb-2">A Taproot transaction with 1 input and 1 output.</p>
+                                <code className="block text-[10px] font-mono bg-slate-100 p-2 rounded break-all text-slate-600 select-all">
+                                    cHNidP8BAFMCAAAAAaRa2HWfLx/FZUL6rpSfIGhXSq7qmNy08FvpZi1vGz/PAAAAAAD/////AYCWmAAAAAAAIlEgEI9GSM3RQBWKDQwOH2E2mVdyHDVdhG9DXBYuZvRSizoAAAAAAAEBK6CGAQAAAAAAIlEgYH+nHJOp3MIWQjoPDnOvU1nDT0s/78TTl+LYT/QRGT0BCEICRzBEAiBV4fRoNTEtSdpzMFdqS3FXmCt57PzXiGKdh+H1UAfWWwIgT32bT7bRIRXyG3CeVdxNNR7KDQB87bMq+x6qJjwm7CABIQPuS6NnsyNfMlOBaFaLmtzyDwauREY2a7ql51R2RLkfpQAA
+                                </code>
+                            </div>
+                            <div className="bg-white p-4 rounded-lg border border-slate-200">
+                                <h3 className="font-semibold text-slate-900 mb-1">Multi-Input Transaction</h3>
+                                <p className="text-sm text-slate-500 mb-2">A transaction consolidating 2 UTXOs into 1 output.</p>
+                                <code className="block text-[10px] font-mono bg-slate-100 p-2 rounded break-all text-slate-600 select-all">
+                                    cHNidP8BAKgCAAAAAnjg0GaKXGKpfIpEAqpLjjBckCQ2TRDzEexq0Vy18GNbAAAAAAD/////VTxTy1O8CL9XDZmvYFfjXKKLjPhx5D8FEAjQE7vJsS0BAAAAAP////8CQEIPAAAAAAAWABSYSHG6/b7DSjegx0y+e3N6FVHO2FDDAAAAAAAAFgAUo7a3uqANRUYsYz0/01TPl3S4QoYAAAAAAAABAHECAAAAAYFtNDsTj1e6v0R7IwOw0NhqVZRB3CbjjNLPgfOc6QFZAAAAAAD/////AoCWmAAAAAAAFgAUmEhxuv2+w0o3oMdMvntzehVRzthQwwAAAAAAABYAFIlvv3n8RkSzGd83qVmOoNqygxFaAAAAAAEBH1DDAAAAAAAAFgAUiW+/efxGRLMZ3zepWY6g2rKDEVoAAA==
+                                </code>
+                            </div>
                         </div>
                     </section>
 
