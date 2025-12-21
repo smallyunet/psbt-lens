@@ -330,3 +330,63 @@ export function updateOutputValue(psbtInput: string, outputIndex: number, newVal
     return psbt.toBase64();
 }
 
+// Remove input at specified index, returns new PSBT in base64
+export function removeInput(psbtInput: string, inputIndex: number): string {
+    const cleanInput = psbtInput.trim();
+    const isHex = /^[0-9a-fA-F]+$/.test(cleanInput);
+    const psbt = isHex ? bitcoin.Psbt.fromHex(cleanInput) : bitcoin.Psbt.fromBase64(cleanInput);
+
+    if (inputIndex < 0 || inputIndex >= psbt.inputCount) {
+        throw new Error(`Invalid input index: ${inputIndex}`);
+    }
+
+    if (psbt.inputCount <= 1) {
+        throw new Error('Cannot remove the only input');
+    }
+
+    // Get the unsigned transaction from PSBT
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const unsignedTx = (psbt.data.globalMap.unsignedTx as any).tx;
+
+    // Remove the input from the transaction
+    unsignedTx.ins.splice(inputIndex, 1);
+
+    // Remove the input data from PSBT
+    psbt.data.inputs.splice(inputIndex, 1);
+
+    return psbt.toBase64();
+}
+
+// Combine multiple PSBTs into one, returns combined PSBT in base64
+export function combinePsbts(psbts: string[]): string {
+    if (psbts.length < 2) {
+        throw new Error('Need at least 2 PSBTs to combine');
+    }
+
+    // Parse all PSBTs
+    const parsedPsbts = psbts.map((p, index) => {
+        const cleanInput = p.trim();
+        if (!cleanInput) {
+            throw new Error(`PSBT ${index + 1} is empty`);
+        }
+        try {
+            const isHex = /^[0-9a-fA-F]+$/.test(cleanInput);
+            return isHex ? bitcoin.Psbt.fromHex(cleanInput) : bitcoin.Psbt.fromBase64(cleanInput);
+        } catch {
+            throw new Error(`Failed to parse PSBT ${index + 1}`);
+        }
+    });
+
+    // Use the first PSBT as the base and combine others into it
+    const basePsbt = parsedPsbts[0];
+
+    for (let i = 1; i < parsedPsbts.length; i++) {
+        try {
+            basePsbt.combine(parsedPsbts[i]);
+        } catch {
+            throw new Error(`Failed to combine PSBT ${i + 1} - PSBTs may be incompatible`);
+        }
+    }
+
+    return basePsbt.toBase64();
+}

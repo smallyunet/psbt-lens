@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { parsePsbt, PsbtSummary, canFinalize, extractTransaction, updateOutputValue } from "@/lib/psbt";
+import { parsePsbt, PsbtSummary, canFinalize, extractTransaction, updateOutputValue, removeInput, combinePsbts } from "@/lib/psbt";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
-import { AlertCircle, Copy, BookOpen, ChevronDown, ChevronUp, Clock, Hash, Beaker, FileOutput, Pencil, Check, X, RotateCcw } from "lucide-react";
+import { AlertCircle, Copy, BookOpen, ChevronDown, ChevronUp, Clock, Hash, Beaker, FileOutput, Pencil, Check, X, RotateCcw, Trash2, Merge } from "lucide-react";
 
 // Example PSBTs for demonstration
 const EXAMPLE_PSBTS = [
@@ -39,6 +39,8 @@ export default function Home() {
   const [canExtract, setCanExtract] = useState(false);
   const [editingOutput, setEditingOutput] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [showCombineModal, setShowCombineModal] = useState(false);
+  const [combineInput, setCombineInput] = useState("");
 
   const loadExample = (psbt: string) => {
     setInput(psbt);
@@ -153,6 +155,47 @@ export default function Home() {
     }
   };
 
+  // Handle removing an input
+  const handleRemoveInput = (index: number) => {
+    if (!confirm(`Remove Input #${index}? This action will modify the PSBT.`)) {
+      return;
+    }
+    try {
+      const newPsbt = removeInput(input, index);
+      setInput(newPsbt);
+      setIsModified(true);
+      // Re-parse
+      const result = parsePsbt(newPsbt);
+      setData(result);
+      setCanExtract(canFinalize(newPsbt));
+      setRawTx(null);
+      setExpandedInputs(new Set());
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Unknown error');
+    }
+  };
+
+  // Handle combining PSBTs
+  const handleCombine = () => {
+    if (!combineInput.trim()) {
+      setError('Please enter a PSBT to combine');
+      return;
+    }
+    try {
+      const combined = combinePsbts([input, combineInput]);
+      setInput(combined);
+      setIsModified(true);
+      setShowCombineModal(false);
+      setCombineInput("");
+      // Re-parse
+      const result = parsePsbt(combined);
+      setData(result);
+      setCanExtract(canFinalize(combined));
+      setRawTx(null);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Unknown error');
+    }
+  };
 
   return (
     <main className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans">
@@ -316,6 +359,21 @@ export default function Home() {
                       </Button>
                     )}
                   </div>
+
+                  {/* Combine PSBTs */}
+                  <div className="pt-4 border-t space-y-3">
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                      <Merge className="w-3 h-3" /> Combine
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-xs h-8"
+                      onClick={() => setShowCombineModal(true)}
+                    >
+                      <Merge className="w-3 h-3 mr-2" /> Combine with Another PSBT
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -341,7 +399,18 @@ export default function Home() {
                             <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">{inp.sighashType}</span>
                           )}
                         </div>
-                        <span className="text-xs font-mono text-slate-400">Seq: {inp.sequence.toString(16)}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-mono text-slate-400">Seq: {inp.sequence.toString(16)}</span>
+                          {data.inputs.length > 1 && (
+                            <button
+                              onClick={() => handleRemoveInput(inp.index)}
+                              className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Remove this input"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <CardContent className="p-4 grid gap-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
@@ -483,6 +552,45 @@ export default function Home() {
           </section>
         )}
       </div>
+
+      {/* Combine PSBTs Modal */}
+      {showCombineModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Merge className="w-5 h-5" /> Combine PSBTs
+              </h3>
+              <button
+                onClick={() => { setShowCombineModal(false); setCombineInput(""); }}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-sm text-slate-500">
+              Paste another PSBT to combine with the current one. This is useful for merging partial signatures in multi-sig workflows.
+            </p>
+            <Textarea
+              placeholder="Paste second PSBT (Base64 or Hex)..."
+              className="font-mono text-xs min-h-[120px] resize-y"
+              value={combineInput}
+              onChange={(e) => setCombineInput(e.target.value)}
+            />
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => { setShowCombineModal(false); setCombineInput(""); }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleCombine}>
+                <Merge className="w-4 h-4 mr-2" /> Combine
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

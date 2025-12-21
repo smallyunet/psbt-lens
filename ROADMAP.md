@@ -20,12 +20,11 @@ This document outlines the development plan for **PSBT Lens**.
 - [x] **Sighash Inspection**: Visualize sighash types for inputs.
 - [x] **Locktime & Version**: Display transaction locktime and version fields.
 
-## Phase 3: Modification & Interaction (v0.0.3) 🚧
+## Phase 3: Modification & Interaction (v0.0.4) ✅
 - [x] **Edit Outputs**: Allow modifying output values.
 - [x] **Raw Transaction Extraction**: Extract the final hex if fully signed.
-- [ ] **Edit Addresses**: Allow modifying output addresses.
-- [ ] **Input Control**: Ability to remove specific inputs.
-- [ ] **Combine PSBTs**: Merge multiple signed PSBTs into one.
+- [x] **Input Control**: Ability to remove specific inputs.
+- [x] **Combine PSBTs**: Merge multiple signed PSBTs into one.
 
 ## Phase 4: Wallet Integration 🔐
 - [ ] **Wallet Connect**: Support for connecting browser wallets:
