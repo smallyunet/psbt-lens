@@ -14,17 +14,18 @@ This document outlines the development plan for **PSBT Lens**.
   - Detailed Output view (Address, Value, ScriptPubKey).
 - [x] **Basic Fee Calculation**: Estimate network fees based on input values (if available).
 
-## Phase 2: Deep Inspection (Upcoming) 🚧
-- [ ] **Script Decoding**: Display ASM (Assembly) for ScriptSig and ScriptPubKey.
-- [ ] **Address Type Detection**: Better identification of address types (P2PKH, P2SH, P2WPKH, P2TR).
-- [ ] **Sighash Inspection**: Visualize sighash types for inputs.
-- [ ] **Locktime & Version**: Display transaction locktime and version fields.
+## Phase 2: Deep Inspection (v0.0.2) ✅
+- [x] **Script Decoding**: Display ASM (Assembly) for ScriptSig and ScriptPubKey.
+- [x] **Address Type Detection**: Better identification of address types (P2PKH, P2SH, P2WPKH, P2TR).
+- [x] **Sighash Inspection**: Visualize sighash types for inputs.
+- [x] **Locktime & Version**: Display transaction locktime and version fields.
 
-## Phase 3: Modification & Interaction 🛠️
-- [ ] **Edit Outputs**: Allow modifying output values and addresses.
+## Phase 3: Modification & Interaction (v0.0.3) 🚧
+- [x] **Edit Outputs**: Allow modifying output values.
+- [x] **Raw Transaction Extraction**: Extract the final hex if fully signed.
+- [ ] **Edit Addresses**: Allow modifying output addresses.
 - [ ] **Input Control**: Ability to remove specific inputs.
 - [ ] **Combine PSBTs**: Merge multiple signed PSBTs into one.
-- [ ] **Raw Transaction Extraction**: Extract the final hex if fully signed.
 
 ## Phase 4: Wallet Integration 🔐
 - [ ] **Wallet Connect**: Support for connecting browser wallets:

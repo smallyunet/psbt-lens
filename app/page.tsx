@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { parsePsbt, PsbtSummary } from "@/lib/psbt";
+import { parsePsbt, PsbtSummary, canFinalize, extractTransaction, updateOutputValue } from "@/lib/psbt";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
-import { AlertCircle, Copy, BookOpen, ChevronDown, ChevronUp, Clock, Hash, Beaker } from "lucide-react";
+import { AlertCircle, Copy, BookOpen, ChevronDown, ChevronUp, Clock, Hash, Beaker, FileOutput, Pencil, Check, X, RotateCcw } from "lucide-react";
 
 // Example PSBTs for demonstration
 const EXAMPLE_PSBTS = [
@@ -29,29 +29,49 @@ const EXAMPLE_PSBTS = [
 
 export default function Home() {
   const [input, setInput] = useState("");
+  const [originalInput, setOriginalInput] = useState(""); // Store original for reset
   const [data, setData] = useState<PsbtSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedInputs, setExpandedInputs] = useState<Set<number>>(new Set());
   const [expandedOutputs, setExpandedOutputs] = useState<Set<number>>(new Set());
+  const [isModified, setIsModified] = useState(false);
+  const [rawTx, setRawTx] = useState<string | null>(null);
+  const [canExtract, setCanExtract] = useState(false);
+  const [editingOutput, setEditingOutput] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState("");
 
   const loadExample = (psbt: string) => {
     setInput(psbt);
+    setOriginalInput(psbt);
     setError(null);
     setData(null);
+    setIsModified(false);
+    setRawTx(null);
+    setCanExtract(false);
+    setEditingOutput(null);
   };
 
   const handleParse = () => {
     setError(null);
     setExpandedInputs(new Set());
     setExpandedOutputs(new Set());
+    setEditingOutput(null);
     if (!input.trim()) return;
 
     try {
       const result = parsePsbt(input);
       setData(result);
-    } catch (e: any) {
-      setError(e.message);
+      // Store original if this is fresh parse (not modified)
+      if (!isModified) {
+        setOriginalInput(input);
+      }
+      // Check if this PSBT can be finalized/extracted
+      setCanExtract(canFinalize(input));
+      setRawTx(null);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Unknown error');
       setData(null);
+      setCanExtract(false);
     }
   };
 
@@ -73,11 +93,66 @@ export default function Home() {
     });
   };
 
-
-
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
+
+  // Handle extracting raw transaction
+  const handleExtractTx = () => {
+    const tx = extractTransaction(input);
+    setRawTx(tx);
+  };
+
+  // Handle starting output edit
+  const startEditOutput = (index: number, currentValue: number) => {
+    setEditingOutput(index);
+    setEditValue(currentValue.toString());
+  };
+
+  // Handle saving output edit
+  const saveEditOutput = (index: number) => {
+    try {
+      const newValue = parseInt(editValue, 10);
+      if (isNaN(newValue) || newValue < 0) {
+        setError('Invalid value: must be a non-negative integer');
+        return;
+      }
+      const newPsbt = updateOutputValue(input, index, newValue);
+      setInput(newPsbt);
+      setIsModified(true);
+      setEditingOutput(null);
+      // Re-parse to update display
+      const result = parsePsbt(newPsbt);
+      setData(result);
+      setCanExtract(canFinalize(newPsbt));
+      setRawTx(null);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Unknown error');
+    }
+  };
+
+  // Handle canceling edit
+  const cancelEditOutput = () => {
+    setEditingOutput(null);
+    setEditValue("");
+  };
+
+  // Handle reset to original
+  const handleReset = () => {
+    setInput(originalInput);
+    setIsModified(false);
+    setEditingOutput(null);
+    setRawTx(null);
+    // Re-parse original
+    try {
+      const result = parsePsbt(originalInput);
+      setData(result);
+      setCanExtract(canFinalize(originalInput));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Unknown error');
+    }
+  };
+
 
   return (
     <main className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans">
@@ -150,7 +225,14 @@ export default function Home() {
             <div className="space-y-6 lg:col-span-1">
               <Card className="shadow-sm">
                 <CardHeader className="bg-slate-100/50 pb-4 border-b">
-                  <CardTitle className="text-lg">Summary</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Summary</CardTitle>
+                    {isModified && (
+                      <span className="text-[10px] font-semibold px-2 py-1 bg-amber-100 text-amber-700 rounded-full flex items-center gap-1">
+                        <Pencil className="w-3 h-3" /> Modified
+                      </span>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-5">
                   <div className="flex justify-between items-center">
@@ -186,6 +268,33 @@ export default function Home() {
                     </div>
                   </div>
 
+                  {/* Raw Transaction Extraction */}
+                  {canExtract && (
+                    <div className="pt-4 border-t space-y-3">
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                        <FileOutput className="w-3 h-3" /> Signed Transaction
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-xs h-8 border-green-300 text-green-700 hover:bg-green-50"
+                        onClick={handleExtractTx}
+                      >
+                        <FileOutput className="w-3 h-3 mr-2" /> Extract Raw TX
+                      </Button>
+                      {rawTx && (
+                        <div className="space-y-2">
+                          <code className="block text-[10px] font-mono bg-green-50 p-2 rounded border border-green-200 break-all max-h-24 overflow-auto text-green-800">
+                            {rawTx}
+                          </code>
+                          <Button variant="outline" size="sm" className="w-full text-xs h-7" onClick={() => copyToClipboard(rawTx)}>
+                            <Copy className="w-3 h-3 mr-2" /> Copy Raw TX
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="pt-4 border-t space-y-3">
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Export Formats</span>
                     <div className="grid grid-cols-2 gap-2">
@@ -196,6 +305,16 @@ export default function Home() {
                         <Copy className="w-3 h-3 mr-2" /> Hex
                       </Button>
                     </div>
+                    {isModified && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-xs h-8 border-amber-300 text-amber-700 hover:bg-amber-50"
+                        onClick={handleReset}
+                      >
+                        <RotateCcw className="w-3 h-3 mr-2" /> Reset to Original
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -291,8 +410,45 @@ export default function Home() {
                           <span className="font-mono text-sm break-all">{out.address || "Unknown"}</span>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <span className="text-lg font-bold font-mono text-slate-900">{out.value.toLocaleString()}</span>
-                          <span className="text-xs text-slate-500 block">sats</span>
+                          {editingOutput === out.index ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                className="w-28 px-2 py-1 text-sm font-mono border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => saveEditOutput(out.index)}
+                                className="p-1 text-green-600 hover:bg-green-50 rounded"
+                                title="Save"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={cancelEditOutput}
+                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                title="Cancel"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div>
+                                <span className="text-lg font-bold font-mono text-slate-900">{out.value.toLocaleString()}</span>
+                                <span className="text-xs text-slate-500 block">sats</span>
+                              </div>
+                              <button
+                                onClick={() => startEditOutput(out.index, out.value)}
+                                className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded"
+                                title="Edit value"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <CardContent className="p-4 bg-slate-50/30 border-t space-y-3">

@@ -253,3 +253,80 @@ export function parsePsbt(input: string): PsbtSummary {
     };
 }
 
+// Check if PSBT can be finalized (all inputs have required signatures)
+export function canFinalize(psbtInput: string): boolean {
+    try {
+        const cleanInput = psbtInput.trim();
+        const isHex = /^[0-9a-fA-F]+$/.test(cleanInput);
+        const psbt = isHex ? bitcoin.Psbt.fromHex(cleanInput) : bitcoin.Psbt.fromBase64(cleanInput);
+
+        // Try to finalize - if it succeeds or is already finalized, return true
+        try {
+            psbt.finalizeAllInputs();
+            return true;
+        } catch {
+            // Check if inputs are already finalized
+            return psbt.data.inputs.every(input =>
+                input.finalScriptSig !== undefined || input.finalScriptWitness !== undefined
+            );
+        }
+    } catch {
+        return false;
+    }
+}
+
+// Extract raw transaction hex from fully signed/finalized PSBT
+export function extractTransaction(psbtInput: string): string | null {
+    try {
+        const cleanInput = psbtInput.trim();
+        const isHex = /^[0-9a-fA-F]+$/.test(cleanInput);
+        const psbt = isHex ? bitcoin.Psbt.fromHex(cleanInput) : bitcoin.Psbt.fromBase64(cleanInput);
+
+        // Try to finalize if not already
+        try {
+            psbt.finalizeAllInputs();
+        } catch {
+            // May already be finalized, continue
+        }
+
+        // Check if all inputs are finalized
+        const allFinalized = psbt.data.inputs.every(input =>
+            input.finalScriptSig !== undefined || input.finalScriptWitness !== undefined
+        );
+
+        if (!allFinalized) {
+            return null;
+        }
+
+        // Extract the transaction
+        const tx = psbt.extractTransaction();
+        return tx.toHex();
+    } catch {
+        return null;
+    }
+}
+
+// Update output value at specified index, returns new PSBT in base64
+export function updateOutputValue(psbtInput: string, outputIndex: number, newValue: number): string {
+    const cleanInput = psbtInput.trim();
+    const isHex = /^[0-9a-fA-F]+$/.test(cleanInput);
+    const psbt = isHex ? bitcoin.Psbt.fromHex(cleanInput) : bitcoin.Psbt.fromBase64(cleanInput);
+
+    if (outputIndex < 0 || outputIndex >= psbt.txOutputs.length) {
+        throw new Error(`Invalid output index: ${outputIndex}`);
+    }
+
+    if (newValue < 0) {
+        throw new Error('Value cannot be negative');
+    }
+
+    // Get the unsigned transaction from PSBT
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const unsignedTx = (psbt.data.globalMap.unsignedTx as any).tx;
+
+    // Update the output value
+    unsignedTx.outs[outputIndex].value = BigInt(newValue);
+
+    return psbt.toBase64();
+}
+
