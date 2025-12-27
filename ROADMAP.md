@@ -33,3 +33,15 @@ This document outlines the development plan for **PSBT Lens**.
   - Leather (Hiro)
 - [x] **Sign PSBT**: Request signature from connected wallet.
 - [x] **Broadcast**: Push signed transaction to the Bitcoin network (via mempool.space API).
+
+## Phase 5: Air-gapped & Hardware Support 📷
+- [ ] **Animated QR Codes**: Generate BC-UR (Blockchain Commons Uniform Resources) animated QR codes for air-gapped wallets (Keystone, Passport, Jade).
+- [ ] **QR Scanning**: Use device camera to scan signed PSBT QR codes back into the app.
+
+## Phase 6: Security & Analysis 🛡️
+- [ ] **Risk Engine**: Automated checks for common pitfalls:
+  - High Fees (Review-worthy absolute or relative fee).
+  - Dangerous Sighashes (`SIGHASH_NONE`, `SIGHASH_SINGLE`).
+  - Dust Outputs.
+- [ ] **Deep Taproot**: Visualize Taproot script trees if KeySpend is not used.
+- [ ] **Fee Rate Context**: Show sats/vbyte estimation.
