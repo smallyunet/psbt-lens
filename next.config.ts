@@ -6,8 +6,8 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   turbopack: {},
-  basePath: '/psbt-lens',
-  assetPrefix: '/psbt-lens',
+  basePath: process.env.NODE_ENV === "production" ? "/psbt-lens" : undefined,
+  assetPrefix: process.env.NODE_ENV === "production" ? "/psbt-lens" : undefined,
   webpack: (config, { isServer }) => {
     // Enable WebAssembly support for tiny-secp256k1
     config.experiments = {

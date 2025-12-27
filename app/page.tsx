@@ -305,7 +305,7 @@ export default function Home() {
                       <span className="text-sm font-medium text-slate-600 flex items-center gap-1">
                         <Clock className="w-3 h-3" /> Locktime
                       </span>
-                      <span className="font-mono text-slate-900">
+                      <span className="font-mono text-slate-900" suppressHydrationWarning>
                         {data.locktime === 0 ? "0 (No lock)" : data.locktime < 500000000 ? `Block ${data.locktime.toLocaleString()}` : new Date(data.locktime * 1000).toLocaleString()}
                       </span>
                     </div>
