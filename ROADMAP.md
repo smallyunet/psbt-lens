@@ -26,10 +26,10 @@ This document outlines the development plan for **PSBT Lens**.
 - [x] **Input Control**: Ability to remove specific inputs.
 - [x] **Combine PSBTs**: Merge multiple signed PSBTs into one.
 
-## Phase 4: Wallet Integration 🔐
-- [ ] **Wallet Connect**: Support for connecting browser wallets:
+## Phase 4: Wallet Integration 🔐 (v0.0.5) ✅
+- [x] **Wallet Connect**: Support for connecting browser wallets:
   - Unisat
   - Xverse
   - Leather (Hiro)
-- [ ] **Sign PSBT**: Request signature from connected wallet.
-- [ ] **Broadcast**: Push signed transaction to the Bitcoin network (via mempool.space API).
+- [x] **Sign PSBT**: Request signature from connected wallet.
+- [x] **Broadcast**: Push signed transaction to the Bitcoin network (via mempool.space API).

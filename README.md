@@ -16,6 +16,7 @@ It provides a clear, developer-friendly interface to inspect the contents of a P
   - View Outputs (Address, Value, ScriptPubKey).
   - Automatic Network Fee estimation.
 - **🔄 Format Support**: Accepts both **Hex** and **Base64** PSBT strings.
+- **🔐 Wallet Integration**: Connect **Unisat**, **Xverse**, or **Leather** to sign PSBTs and broadcast transactions directly to the network.
 
 ## Tech Stack
 
