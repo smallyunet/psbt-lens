@@ -35,8 +35,8 @@ This document outlines the development plan for **PSBT Lens**.
 - [x] **Broadcast**: Push signed transaction to the Bitcoin network (via mempool.space API).
 
 ## Phase 5: Air-gapped & Hardware Support 📷
-- [ ] **Animated QR Codes**: Generate BC-UR (Blockchain Commons Uniform Resources) animated QR codes for air-gapped wallets (Keystone, Passport, Jade).
-- [ ] **QR Scanning**: Use device camera to scan signed PSBT QR codes back into the app.
+- [x] **Animated QR Codes**: Generate BC-UR (Blockchain Commons Uniform Resources) animated QR codes for air-gapped wallets (Keystone, Passport, Jade).
+- [x] **QR Scanning**: Use device camera to scan signed PSBT QR codes back into the app.
 
 ## Phase 6: Security & Analysis 🛡️
 - [ ] **Risk Engine**: Automated checks for common pitfalls:

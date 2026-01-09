@@ -6,9 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
-import { AlertCircle, Copy, BookOpen, ChevronDown, ChevronUp, Clock, Hash, Beaker, FileOutput, Pencil, Check, X, RotateCcw, Trash2, Merge, Wallet } from "lucide-react";
+import { AlertCircle, Copy, BookOpen, ChevronDown, ChevronUp, Clock, Hash, Beaker, FileOutput, Pencil, Check, X, RotateCcw, Trash2, Merge, Wallet, QrCode, Scan } from "lucide-react";
 import { useWallet } from "@/hooks/useWallet";
 import { WalletConnect } from "@/components/WalletConnect";
+import { AnimatedQR } from "@/components/AnimatedQR";
+import { QRScanner } from "@/components/QRScanner";
 
 // Example PSBTs for demonstration
 const EXAMPLE_PSBTS = [
@@ -44,6 +46,8 @@ export default function Home() {
   const [showCombineModal, setShowCombineModal] = useState(false);
   const [combineInput, setCombineInput] = useState("");
   const [broadcastTxId, setBroadcastTxId] = useState<string | null>(null);
+  const [showAirGapModal, setShowAirGapModal] = useState(false);
+  const [showScanModal, setShowScanModal] = useState(false);
 
   const {
     address,
@@ -286,7 +290,12 @@ export default function Home() {
           <section>
             <Card className="shadow-md">
               <CardHeader>
-                <CardTitle>Raw PSBT Input</CardTitle>
+                <CardTitle className="flex justify-between items-center">
+                  <span>Raw PSBT Input</span>
+                  <Button variant="ghost" size="sm" className="h-8 gap-2 text-slate-500 hover:text-slate-900" onClick={() => setShowScanModal(true)}>
+                    <Scan className="w-4 h-4" /> Scan QR
+                  </Button>
+                </CardTitle>
                 <CardDescription>Paste your PSBT in Hex (0022...) or Base64 (cHNk...) format, or try an example.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -402,6 +411,20 @@ export default function Home() {
                         </Button>
                       </div>
                     )}
+
+                    {/* Air-gapped Actions */}
+                    <div className="pt-4 border-t space-y-3">
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                        <QrCode className="w-3 h-3" /> Air-gapped Sign
+                      </span>
+                      <Button
+                        variant="outline"
+                        className="w-full text-xs h-8"
+                        onClick={() => setShowAirGapModal(true)}
+                      >
+                        Show Animated QR
+                      </Button>
+                    </div>
 
                     {/* Raw Transaction Extraction */}
                     {canExtract && (
@@ -702,7 +725,91 @@ export default function Home() {
             </div>
           </div>
         )}
-      </main>
+
+        {/* Air-gapped Modal */}
+        {showAirGapModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <QrCode className="w-5 h-5" /> Air-gapped Signing
+                </h3>
+                <button
+                  onClick={() => setShowAirGapModal(false)}
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-slate-500">
+                Scan this animated QR code with your air-gapped wallet (Keystone, Jade, Passport) to sign the transaction.
+              </p>
+
+              <div className="flex justify-center py-4">
+                <AnimatedQR psbtHex={data?.hex || ""} size={280} />
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={() => setShowAirGapModal(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+          </div >
+        )
+}
+
+{/* Scan QR Modal */ }
+{
+  showScanModal && (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <Scan className="w-5 h-5" /> Scan PSBT
+          </h3>
+          <button
+            onClick={() => setShowScanModal(false)}
+            className="p-1 text-slate-400 hover:text-slate-600 rounded"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <p className="text-sm text-slate-500">
+          Scan a static QR code or an animated BC-UR QR code (e.g. from Keystone/Passport).
+        </p>
+
+        <div className="flex justify-center py-4">
+          <QRScanner
+            onScan={(psbt) => {
+              setInput(psbt);
+              setShowScanModal(false);
+              // trigger parse indirectly or effect?
+              // User will click Analyze, or we can auto-analyze.
+              // For now let user click Analyze or we can try to auto call handleParse logic if we extracted it, 
+              // but since handleParse uses the current state 'input' which is async set, it might not work immediately unless we pass it.
+              // Best to just set input for now.
+            }}
+            onError={(err) => {
+              // Maybe show a toast or alert?
+              console.error(err);
+            }}
+          />
+        </div>
+
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={() => setShowScanModal(false)}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+      </main >
     );
   }
 }
